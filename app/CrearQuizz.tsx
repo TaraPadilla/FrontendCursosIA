@@ -3,7 +3,7 @@ import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/d
 import { router, useLocalSearchParams } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import React, { useEffect, useState } from 'react';
-import { Alert, Platform, ScrollView, StyleSheet } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { Button, Text, TextInput } from 'react-native-paper';
 
 const now = new Date();
@@ -142,13 +142,57 @@ export default function CrearQuizz() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text variant="titleLarge">Crear Quizz</Text>
-
-      <TextInput label="Título" value={titulo} onChangeText={setTitulo} style={styles.input} />
-
-      <Button mode="outlined" onPress={abrirPickerInicio} style={styles.input}>
-        {fechaInicio ? `Inicio: ${new Date(fechaInicio).toLocaleString()}` : 'Seleccionar Fecha de Inicio'}
-      </Button>
+      <Text variant="titleLarge" style={styles.title}>Crear Nuevo Quiz</Text>
+      
+      {/* Sección de información básica */}
+      <Text variant="titleMedium" style={styles.sectionTitle}>Información del Quiz</Text>
+      <TextInput 
+        label="Título" 
+        value={titulo} 
+        onChangeText={setTitulo} 
+        style={styles.input} 
+        mode="outlined"
+      />
+      
+      <TextInput 
+        label="Tema" 
+        value={tema} 
+        onChangeText={setTema} 
+        style={styles.input}
+        mode="outlined"
+      />
+      
+      <TextInput 
+        label="Cantidad de preguntas" 
+        value={cantidad} 
+        onChangeText={setCantidad} 
+        keyboardType="numeric" 
+        style={styles.input}
+        mode="outlined"
+      />
+      
+      {/* Sección de fechas */}
+      <Text variant="titleMedium" style={[styles.sectionTitle, {marginTop: 16}]}>Fechas del Quiz</Text>
+      <View style={styles.dateContainer}>
+        <Button 
+          mode="outlined" 
+          onPress={abrirPickerInicio} 
+          style={[styles.button, styles.dateButton]}
+          icon="calendar"
+        >
+          {fechaInicio ? `Inicio: ${new Date(fechaInicio).toLocaleString()}` : 'Seleccionar Fecha de Inicio'}
+        </Button>
+        
+        <Button 
+          mode="outlined" 
+          onPress={abrirPickerFin} 
+          style={[styles.button, styles.dateButton, {marginTop: 8}]}
+          icon="calendar"
+        >
+          {fechaFin ? `Fin: ${new Date(fechaFin).toLocaleString()}` : 'Seleccionar Fecha de Fin'}
+        </Button>
+      </View>
+      
       {Platform.OS === 'ios' && mostrarInicioIOS && (
         <DateTimePicker
           value={new Date(fechaInicio)}
@@ -162,10 +206,7 @@ export default function CrearQuizz() {
           }}
         />
       )}
-
-      <Button mode="outlined" onPress={abrirPickerFin} style={styles.input}>
-        {fechaFin ? `Fin: ${new Date(fechaFin).toLocaleString()}` : 'Seleccionar Fecha de Fin'}
-      </Button>
+      
       {Platform.OS === 'ios' && mostrarFinIOS && (
         <DateTimePicker
           value={new Date(fechaFin)}
@@ -179,36 +220,102 @@ export default function CrearQuizz() {
           }}
         />
       )}
-
-      <Button 
-        mode="contained" 
-        onPress={handleCrearQuizz}
-        disabled={preguntas.length === 0}
-      >
-        Crear Quiz
-      </Button>
-      {mensaje ? <Text style={{ marginTop: 20 }}>{mensaje}</Text> : null}
-
-      <TextInput label="Tema" value={tema} onChangeText={setTema} style={styles.input} />
-      <TextInput label="Cantidad de preguntas" value={cantidad} onChangeText={setCantidad} keyboardType="numeric" style={styles.input} />
-      <Button mode="outlined" onPress={handleGenerarPreguntas}>Generar preguntas con IA</Button>
-
+      
+      {/* Sección de acciones */}
+      <View style={styles.actionsContainer}>
+        <Button 
+          mode="outlined" 
+          onPress={handleGenerarPreguntas} 
+          style={[styles.button, {marginBottom: 16}]}
+          icon="robot"
+        >
+          Generar preguntas con IA
+        </Button>
+        
+        <Button 
+          mode="contained" 
+          onPress={handleCrearQuizz}
+          disabled={preguntas.length === 0}
+          style={styles.button}
+          icon="check"
+        >
+          Crear Quiz
+        </Button>
+        
+        {mensaje ? <Text style={styles.message}>{mensaje}</Text> : null}
+      </View>
+      
+      {/* Sección de preguntas generadas */}
       {preguntas.length > 0 && (
-        <>  
-          <Text style={{ marginTop: 20, fontWeight: 'bold' }}>Preguntas generadas:</Text>
+        <View style={styles.questionsContainer}>
+          <Text variant="titleMedium" style={styles.sectionTitle}>Preguntas Generadas</Text>
           {preguntas.map((pregunta, idx) => (
-            <Text key={idx} style={{ marginVertical: 4 }}>
-              • {pregunta}
-            </Text>
+            <View key={idx} style={styles.questionItem}>
+              <Text style={styles.questionText}>• {pregunta}</Text>
+            </View>
           ))}
-        </>
-
+        </View>
       )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, backgroundColor: 'white' },
-  input: { marginBottom: 12 },
+  container: { 
+    padding: 20, 
+    backgroundColor: 'white',
+    paddingBottom: 40,
+  },
+  title: {
+    marginBottom: 24,
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  sectionTitle: {
+    marginTop: 8,
+    marginBottom: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  input: { 
+    marginBottom: 16,
+    backgroundColor: '#fff',
+  },
+  dateContainer: {
+    marginBottom: 16,
+  },
+  dateButton: {
+    width: '100%',
+    justifyContent: 'flex-start',
+    paddingVertical: 8,
+  },
+  button: {
+    marginTop: 8,
+    borderRadius: 4,
+  },
+  actionsContainer: {
+    marginTop: 24,
+    marginBottom: 16,
+  },
+  message: {
+    marginTop: 16,
+    textAlign: 'center',
+    color: '#666',
+  },
+  questionsContainer: {
+    marginTop: 24,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  questionItem: {
+    backgroundColor: '#f8f9fa',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  questionText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
 });
