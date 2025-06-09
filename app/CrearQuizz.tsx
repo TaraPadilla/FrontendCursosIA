@@ -1,25 +1,21 @@
 import { crearQuizz, generarPreguntasConIA } from '@/apis/apiQuizz';
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
-import { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, Platform, ScrollView, StyleSheet } from 'react-native';
 import { Button, Text, TextInput } from 'react-native-paper';
 
 const now = new Date();
 const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
 
-// Formato tipo: '2025-05-27T15:00'
 function formatDate(date: Date) {
-  return date.toISOString().slice(0, 16); // formato YYYY-MM-DDTHH:mm
-}
-
-interface CrearQuizzProps {
-  cursoId: number;
+  return date.toISOString().slice(0, 16);
 }
 
 export default function CrearQuizz() {
   const params = useLocalSearchParams();
-  const [cursoId, setCursoId] = useState<number>(1); // ← nuevo estado para cursoId
+  const [cursoId, setCursoId] = useState<number>(1);
 
   const [titulo, setTitulo] = useState('');
   const [tema, setTema] = useState('');
@@ -28,6 +24,9 @@ export default function CrearQuizz() {
   const [fechaFin, setFechaFin] = useState(formatDate(oneHourLater));
   const [preguntas, setPreguntas] = useState<string[]>([]);
   const [mensaje, setMensaje] = useState('');
+
+  const [mostrarInicioIOS, setMostrarInicioIOS] = useState(false);
+  const [mostrarFinIOS, setMostrarFinIOS] = useState(false);
 
   useEffect(() => {
     if (params.cursoId) setCursoId(parseInt(params.cursoId as string));
@@ -38,12 +37,43 @@ export default function CrearQuizz() {
     if (params.fechaFin) setFechaFin(params.fechaFin as string);
   }, []);
 
+  const abrirPickerInicio = () => {
+    if (Platform.OS === 'android') {
+      DateTimePickerAndroid.open({
+        value: new Date(fechaInicio),
+        mode: 'date',
+        is24Hour: true,
+        onChange: (event, selectedDate) => {
+          if (event.type === 'set' && selectedDate) {
+            setFechaInicio(selectedDate.toISOString());
+          }
+        },
+      });
+    } else {
+      setMostrarInicioIOS(true);
+    }
+  };
+
+  const abrirPickerFin = () => {
+    if (Platform.OS === 'android') {
+      DateTimePickerAndroid.open({
+        value: new Date(fechaFin),
+        mode: 'date',
+        is24Hour: true,
+        onChange: (event, selectedDate) => {
+          if (event.type === 'set' && selectedDate) {
+            setFechaFin(selectedDate.toISOString());
+          }
+        },
+      });
+    } else {
+      setMostrarFinIOS(true);
+    }
+  };
 
   const handleGenerarPreguntas = async () => {
     try {
       const data = await generarPreguntasConIA(tema, parseInt(cantidad));
-      //const textos = data.map((p: any) => p.texto); // Ajusta según tu modelo
-      //setPreguntas(textos);
       router.push({
         pathname: '/VistaPreguntas',
         params: {
@@ -56,48 +86,84 @@ export default function CrearQuizz() {
     }
   };
 
-const handleCrearQuizz = async () => {
-  try {
-    const token = await SecureStore.getItemAsync('token');
-    if (!token) throw new Error('Token no encontrado');
+  const handleCrearQuizz = async () => {
+    try {
+      const token = await SecureStore.getItemAsync('token');
+      if (!token) throw new Error('Token no encontrado');
 
-    // Si no hay fechas, crea por defecto: ahora + 1 hora
-    const defaultInicio = fechaInicio ? new Date(fechaInicio).toISOString() : new Date().toISOString();
-    const defaultFin = fechaFin ? new Date(fechaFin).toISOString() : new Date(Date.now() + 60 * 60 * 1000).toISOString();
+      const inicio = new Date(fechaInicio);
+      const fin = new Date(fechaFin);
 
-    const quiz = {
-      titulo,
-      tema,
-      preguntas,
-      curso_id: cursoId,
-      fecha_inicio: defaultInicio,
-      fecha_fin: defaultFin,
-      estado: "programado"
-    };
+      if (inicio >= fin) {
+        Alert.alert('Error', 'La fecha de inicio debe ser anterior a la fecha de fin');
+        return;
+      }
 
-    console.log('Enviando quiz:', quiz);
+      const quiz = {
+        titulo,
+        tema,
+        preguntas,
+        curso_id: cursoId,
+        fecha_inicio: inicio.toISOString(),
+        fecha_fin: fin.toISOString(),
+        estado: "programado"
+      };
 
-    const res = await crearQuizz(quiz, token) as any;
-    Alert.alert(`Quiz creado con ID: ${res.id}`);
-    setTitulo('');
-    setTema('');
-    setCantidad('5');
-    setFechaInicio('');
-    setFechaFin('');
-    setPreguntas([]);
-  } catch (error: any) {
-    console.error(error?.response?.data || error);
-    setMensaje('Error al crear el quiz');
-  }
-};
+      console.log('Enviando quiz:', quiz);
+
+      const res = await crearQuizz(quiz, token) as any;
+      Alert.alert(`Quiz creado con ID: ${res.id}`);
+      setTitulo('');
+      setTema('');
+      setCantidad('5');
+      setFechaInicio('');
+      setFechaFin('');
+      setPreguntas([]);
+    } catch (error: any) {
+      console.error(error?.response?.data || error);
+      setMensaje('Error al crear el quiz');
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text variant="titleLarge">Crear Quizz</Text>
 
       <TextInput label="Título" value={titulo} onChangeText={setTitulo} style={styles.input} />
-      <TextInput label="Fecha Inicio (YYYY-MM-DDTHH:mm)" value={fechaInicio} onChangeText={setFechaInicio} style={styles.input} />
-      <TextInput label="Fecha Fin (YYYY-MM-DDTHH:mm)" value={fechaFin} onChangeText={setFechaFin} style={styles.input} />
+
+      <Button mode="outlined" onPress={abrirPickerInicio} style={styles.input}>
+        {fechaInicio ? `Inicio: ${new Date(fechaInicio).toLocaleString()}` : 'Seleccionar Fecha de Inicio'}
+      </Button>
+      {Platform.OS === 'ios' && mostrarInicioIOS && (
+        <DateTimePicker
+          value={new Date(fechaInicio)}
+          mode="datetime"
+          display="spinner"
+          onChange={(event, selectedDate?: Date) => {
+            if (event.type === 'set' && selectedDate) {
+              setFechaInicio(selectedDate.toISOString());
+            }
+            setMostrarInicioIOS(false);
+          }}
+        />
+      )}
+
+      <Button mode="outlined" onPress={abrirPickerFin} style={styles.input}>
+        {fechaFin ? `Fin: ${new Date(fechaFin).toLocaleString()}` : 'Seleccionar Fecha de Fin'}
+      </Button>
+      {Platform.OS === 'ios' && mostrarFinIOS && (
+        <DateTimePicker
+          value={new Date(fechaFin)}
+          mode="datetime"
+          display="spinner"
+          onChange={(event, selectedDate?: Date) => {
+            if (event.type === 'set' && selectedDate) {
+              setFechaFin(selectedDate.toISOString());
+            }
+            setMostrarFinIOS(false);
+          }}
+        />
+      )}
 
       <Button mode="contained" onPress={handleCrearQuizz}>Crear Quiz</Button>
       {mensaje ? <Text style={{ marginTop: 20 }}>{mensaje}</Text> : null}
@@ -118,8 +184,7 @@ const handleCrearQuizz = async () => {
   );
 }
 
-
 const styles = StyleSheet.create({
-  container: { padding: 20 },
-  input: { marginBottom: 12 }
+  container: { padding: 20, backgroundColor: 'white' },
+  input: { marginBottom: 12 },
 });
