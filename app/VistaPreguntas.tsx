@@ -23,10 +23,15 @@ type AuthContextType = {
 };
 
 export default function VistaPreguntas() {
-  const { preguntas } = useLocalSearchParams();
+  const { preguntas, titulo, tema, cursoId } = useLocalSearchParams();
   const preguntasArray: Pregunta[] = Array.isArray(preguntas)
     ? preguntas
     : JSON.parse(preguntas || '[]');
+
+  // Parsear los parámetros con valores por defecto
+  const tituloQuiz = typeof titulo === 'string' ? titulo : 'Nuevo Quiz';
+  const temaQuiz = typeof tema === 'string' ? tema : 'General';
+  const cursoIdNum = typeof cursoId === 'string' ? parseInt(cursoId) : 1;
 
   // asegúrate que tienes acceso al token desde contexto
   const { token } = useAuth(); // ya tienes acceso al token
@@ -39,9 +44,9 @@ export default function VistaPreguntas() {
     }
 
     const quizData = {
-      titulo: "El mio cid",
-      tema: "Mio cid",
-      curso_id: 1,
+      titulo: tituloQuiz,
+      tema: temaQuiz,
+      curso_id: cursoIdNum,
       fecha_inicio: new Date().toISOString(),
       fecha_fin: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hora después
       estado: "programado",
@@ -60,47 +65,45 @@ export default function VistaPreguntas() {
     }
   };
 
-console.log("🧪 Token actual en VistaPreguntas:", token); // 👈 log para comprobar
+  console.log("🧪 Token actual en VistaPreguntas:", token); // 👈 log para comprobar
 
   const handleGuardarPreguntas = async () => {
-  if (!token) {
-    Alert.alert('Error', 'No se ha iniciado sesión. Inicia sesión para guardar las preguntas.');
-    return;
-  }
+    if (!token) {
+      Alert.alert('Error', 'No se ha iniciado sesión. Inicia sesión para guardar las preguntas.');
+      return;
+    }
 
-  // AÑADIR curso_id aquí. Por ahora lo colocamos fijo en 1, pero puedes cambiarlo dinámicamente.
-  const curso_id = 1;
+    // Usamos el cursoId que recibimos como parámetro
+    const preguntasConCurso = preguntasArray.map(p => ({
+      ...p,
+      curso_id: cursoIdNum,
+    }));
 
-  // Añadimos curso_id a cada pregunta antes de enviarla
-  const preguntasConCurso = preguntasArray.map(p => ({
-    ...p,
-    curso_id,
-  }));
+    try {
+      console.log("📦 Enviando preguntas:", preguntasConCurso); // debug opcional
+      const response = await guardarPreguntasSeleccionadas(preguntasConCurso, token);
+      Alert.alert('Éxito', 'Las preguntas fueron guardadas correctamente');
+      console.log('IDs insertados:', response);
+      setInsertedIds(response as string[]);
 
-  try {
-    console.log("📦 Enviando preguntas:", preguntasConCurso); // debug opcional
-    const response = await guardarPreguntasSeleccionadas(preguntasConCurso, token);
-    Alert.alert('Éxito', 'Las preguntas fueron guardadas correctamente');
-    console.log('IDs insertados:', response);
-    setInsertedIds(response as string[]);
-
-// Reenviar al formulario con los datos e IDs insertados
-router.replace({
-  pathname: '../CrearQuizz',
-  params: {
-    preguntasIds: JSON.stringify(response),
-    cursoId: "1",
-    titulo: "El mio cid",
-    tema: "Mio cid",
-    fechaInicio: new Date().toISOString(),
-    fechaFin: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-  },
-});    
-  } catch (error: any) {
-    console.error('Error al guardar preguntas:', error);
-    Alert.alert('Error', 'No se pudieron guardar las preguntas');
-  }
-};
+      // Reenviar al formulario con los datos e IDs insertados
+      router.replace({
+        pathname: '../CrearQuizz',
+        params: {
+          preguntasIds: JSON.stringify(response),
+          preguntas: JSON.stringify(preguntasArray),
+          cursoId: cursoIdNum.toString(),
+          titulo: tituloQuiz,
+          tema: temaQuiz,
+          fechaInicio: new Date().toISOString(),
+          fechaFin: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+        },
+      });
+    } catch (error: any) {
+      console.error('Error al guardar preguntas:', error);
+      Alert.alert('Error', 'No se pudieron guardar las preguntas');
+    }
+  };
 
 
   return (

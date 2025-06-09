@@ -31,11 +31,23 @@ export default function CrearQuizz() {
   useEffect(() => {
     if (params.cursoId) setCursoId(parseInt(params.cursoId as string));
     if (params.preguntasIds) setPreguntas(JSON.parse(params.preguntasIds as string));
+    if (params.preguntas) {
+      try {
+        const parsed = JSON.parse(params.preguntas as string);
+        if (Array.isArray(parsed)) {
+          const textos = parsed.map((p: any) => p.texto || p); 
+          setPreguntas(textos);
+        }
+      } catch (err) {
+        console.error("Error al parsear preguntas:", err);
+      }
+    }
     if (params.titulo) setTitulo(params.titulo as string);
     if (params.tema) setTema(params.tema as string);
     if (params.fechaInicio) setFechaInicio(params.fechaInicio as string);
     if (params.fechaFin) setFechaFin(params.fechaFin as string);
   }, []);
+  
 
   const abrirPickerInicio = () => {
     if (Platform.OS === 'android') {
@@ -78,6 +90,9 @@ export default function CrearQuizz() {
         pathname: '/VistaPreguntas',
         params: {
           preguntas: JSON.stringify(data),
+          titulo: titulo,
+          tema: tema,
+          cursoId: cursoId.toString(),
         },
       });
     } catch (error: any) {
@@ -165,7 +180,13 @@ export default function CrearQuizz() {
         />
       )}
 
-      <Button mode="contained" onPress={handleCrearQuizz}>Crear Quiz</Button>
+      <Button 
+        mode="contained" 
+        onPress={handleCrearQuizz}
+        disabled={preguntas.length === 0}
+      >
+        Crear Quiz
+      </Button>
       {mensaje ? <Text style={{ marginTop: 20 }}>{mensaje}</Text> : null}
 
       <TextInput label="Tema" value={tema} onChangeText={setTema} style={styles.input} />
@@ -173,12 +194,15 @@ export default function CrearQuizz() {
       <Button mode="outlined" onPress={handleGenerarPreguntas}>Generar preguntas con IA</Button>
 
       {preguntas.length > 0 && (
-        <>
+        <>  
           <Text style={{ marginTop: 20, fontWeight: 'bold' }}>Preguntas generadas:</Text>
-          {preguntas.map((p, i) => (
-            <Text key={i} style={{ marginVertical: 4 }}>• {p}</Text>
+          {preguntas.map((pregunta, idx) => (
+            <Text key={idx} style={{ marginVertical: 4 }}>
+              • {pregunta}
+            </Text>
           ))}
         </>
+
       )}
     </ScrollView>
   );
