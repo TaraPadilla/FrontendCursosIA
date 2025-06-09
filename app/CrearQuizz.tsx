@@ -22,21 +22,27 @@ export default function CrearQuizz() {
   const [cantidad, setCantidad] = useState('5');
   const [fechaInicio, setFechaInicio] = useState(formatDate(now));
   const [fechaFin, setFechaFin] = useState(formatDate(oneHourLater));
-  const [preguntas, setPreguntas] = useState<string[]>([]);
   const [mensaje, setMensaje] = useState('');
 
   const [mostrarInicioIOS, setMostrarInicioIOS] = useState(false);
   const [mostrarFinIOS, setMostrarFinIOS] = useState(false);
 
+  const [preguntas, setPreguntas] = useState<string[]>([]);
+  const [preguntasIds, setPreguntasIds] = useState<string[]>([]);
+  const [preguntasTextos, setPreguntasTextos] = useState<string[]>([]);
+
+
   useEffect(() => {
     if (params.cursoId) setCursoId(parseInt(params.cursoId as string));
-    if (params.preguntasIds) setPreguntas(JSON.parse(params.preguntasIds as string));
+    if (params.preguntasIds) {
+      setPreguntasIds(JSON.parse(params.preguntasIds as string));
+    }
     if (params.preguntas) {
       try {
         const parsed = JSON.parse(params.preguntas as string);
         if (Array.isArray(parsed)) {
-          const textos = parsed.map((p: any) => p.texto || p); 
-          setPreguntas(textos);
+          const textos = parsed.map((p: any) => p.texto || p);
+          setPreguntasTextos(textos);
         }
       } catch (err) {
         console.error("Error al parsear preguntas:", err);
@@ -117,7 +123,7 @@ export default function CrearQuizz() {
       const quiz = {
         titulo,
         tema,
-        preguntas,
+        preguntas: preguntasIds,
         curso_id: cursoId,
         fecha_inicio: inicio.toISOString(),
         fecha_fin: fin.toISOString(),
@@ -127,7 +133,17 @@ export default function CrearQuizz() {
       console.log('Enviando quiz:', quiz);
 
       const res = await crearQuizz(quiz, token) as any;
-      Alert.alert(`Quiz creado con ID: ${res.id}`);
+      Alert.alert(
+        'Éxito',
+        `Quiz creado con ID: ${res.id}`,
+        [
+          {
+            text: 'Aceptar',
+            onPress: () => router.replace('/ProfesorHome'),
+          },
+        ]
+      );
+      
       setTitulo('');
       setTema('');
       setCantidad('5');
@@ -235,7 +251,7 @@ export default function CrearQuizz() {
         <Button 
           mode="contained" 
           onPress={handleCrearQuizz}
-          disabled={preguntas.length === 0}
+          disabled={preguntasTextos.length === 0}
           style={styles.button}
           icon="check"
         >
@@ -246,10 +262,10 @@ export default function CrearQuizz() {
       </View>
       
       {/* Sección de preguntas generadas */}
-      {preguntas.length > 0 && (
+      {preguntasTextos.length > 0 && (
         <View style={styles.questionsContainer}>
           <Text variant="titleMedium" style={styles.sectionTitle}>Preguntas Generadas</Text>
-          {preguntas.map((pregunta, idx) => (
+          {preguntasTextos.map((pregunta, idx) => (
             <View key={idx} style={styles.questionItem}>
               <Text style={styles.questionText}>• {pregunta}</Text>
             </View>

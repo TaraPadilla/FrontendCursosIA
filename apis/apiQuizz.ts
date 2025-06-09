@@ -44,3 +44,15 @@ export async function obtenerPreguntasPorTemaYCurso(
   });
   return res.data;
 }
+
+export async function obtenerQuizzesActivosProgramados(curso_id: number, token: string): Promise<any[]> {
+  console.log(curso_id);
+  console.log(token);
+  const res = await axios.get<any[]>(`${API_URL}/quizzes/activos-programados/${curso_id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  console.log(res.data);
+  return res.data;
+}

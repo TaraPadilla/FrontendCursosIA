@@ -1,4 +1,6 @@
+import { obtenerQuizzesActivosProgramados } from '@/apis/apiQuizz';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from 'react';
 import { Button, FlatList, StyleSheet, Text, View } from 'react-native';
 
@@ -11,21 +13,29 @@ interface Quiz {
   estado: string;
 }
 
-export default function CursoAlumnoScreen() {
+export default function QuizActivos() {
   const { id } = useLocalSearchParams(); // curso_id
   const router = useRouter();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const cursoId = parseInt(id as string);
 
   useEffect(() => {
     const fetchQuizzes = async () => {
-      const token = await getToken(); // Reemplaza por tu método real
-      const res = await fetch(`http://localhost:8002/quizzes/activos-programados/${id}`, {
-        headers: { Authorization: token },
-      });
-      const data = await res.json();
-      setQuizzes(data);
+      try {
+        const storedToken = await SecureStore.getItemAsync('token');
+        if (!storedToken) {
+          console.warn('Token no encontrado');
+          return;
+        }
+  
+        const quizzes = await obtenerQuizzesActivosProgramados(cursoId, storedToken);
+        setQuizzes(quizzes);
+      } catch (error) {
+        console.error('Error al obtener quizzes activos:', error);
+      }
     };
-
+  
+    console.log('cursoId en quizActivos', cursoId);
     fetchQuizzes();
   }, []);
 
@@ -38,6 +48,7 @@ export default function CursoAlumnoScreen() {
         renderItem={({ item }) => (
           <View style={styles.card}>
             <Text style={styles.quizTitle}>{item.titulo}</Text>
+            <Text style={styles.subTitle}>{item.id}</Text> 
             <Text>{item.tema}</Text>
             <Button
               title="Resolver quiz"
@@ -50,11 +61,6 @@ export default function CursoAlumnoScreen() {
   );
 }
 
-const getToken = async () => {
-  // Simulación: deberías obtenerlo de contexto o async storage
-  return 'Bearer TU_TOKEN_AQUI';
-};
-
 const styles = StyleSheet.create({
   container: { padding: 16 },
   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
@@ -65,4 +71,5 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   quizTitle: { fontWeight: 'bold', fontSize: 18 },
+  subTitle: { fontSize: 14, color: '#666' },
 });

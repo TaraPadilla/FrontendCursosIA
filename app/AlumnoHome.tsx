@@ -32,7 +32,7 @@ export default function AlumnoHome() {
     if (!token) return;
 
     const data = await getMisInscripciones(token);
-    setInscripciones(data);
+    setInscripciones(data as Inscripcion[]);
   };
 
   const handleInscribirse = async () => {
@@ -68,12 +68,12 @@ export default function AlumnoHome() {
           style={{ marginTop: 10 }}
           onPress={() =>
             router.push({
-              pathname: '/cursoalumno/[id]',
-              params: { id: ins.curso.id.toString() },
+              pathname: '/cursoalumno/quizActivos',
+              params: { id: ins.curso.id },
             })
           }
         >
-          <Card.Title title={ins.curso.nombre} subtitle={`Código: ${ins.curso.codigo_acceso}`} />
+          <Card.Title title={ins.curso.id + " - " + ins.curso.nombre} subtitle={`Código: ${ins.curso.codigo_acceso}`} />
           <Card.Content>
             <Text>{ins.curso.descripcion}</Text>
           </Card.Content>
