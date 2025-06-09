@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
+
 type AuthContextType = {
   token: string | null;
   setToken: (token: string | null) => void;

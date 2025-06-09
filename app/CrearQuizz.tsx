@@ -2,7 +2,7 @@ import { crearQuizz, generarPreguntasConIA } from '@/apis/apiQuizz';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { Alert, ScrollView, StyleSheet } from 'react-native';
 import { Button, Text, TextInput } from 'react-native-paper';
 
 const now = new Date();
@@ -17,16 +17,9 @@ interface CrearQuizzProps {
   cursoId: number;
 }
 
-export default function CrearQuizz({ cursoId }: { cursoId: number }) {
+export default function CrearQuizz() {
   const params = useLocalSearchParams();
-
-  useEffect(() => {
-    if (params.preguntasIds) setPreguntas(JSON.parse(params.preguntasIds as string));
-    if (params.titulo) setTitulo(params.titulo as string);
-    if (params.tema) setTema(params.tema as string);
-    if (params.fechaInicio) setFechaInicio(params.fechaInicio as string);
-    if (params.fechaFin) setFechaFin(params.fechaFin as string);
-  }, []);
+  const [cursoId, setCursoId] = useState<number>(1); // ← nuevo estado para cursoId
 
   const [titulo, setTitulo] = useState('');
   const [tema, setTema] = useState('');
@@ -36,6 +29,16 @@ export default function CrearQuizz({ cursoId }: { cursoId: number }) {
   const [preguntas, setPreguntas] = useState<string[]>([]);
   const [mensaje, setMensaje] = useState('');
 
+  useEffect(() => {
+    if (params.cursoId) setCursoId(parseInt(params.cursoId as string));
+    if (params.preguntasIds) setPreguntas(JSON.parse(params.preguntasIds as string));
+    if (params.titulo) setTitulo(params.titulo as string);
+    if (params.tema) setTema(params.tema as string);
+    if (params.fechaInicio) setFechaInicio(params.fechaInicio as string);
+    if (params.fechaFin) setFechaFin(params.fechaFin as string);
+  }, []);
+
+
   const handleGenerarPreguntas = async () => {
     try {
       const data = await generarPreguntasConIA(tema, parseInt(cantidad));
@@ -44,11 +47,10 @@ export default function CrearQuizz({ cursoId }: { cursoId: number }) {
       router.push({
         pathname: '/VistaPreguntas',
         params: {
-          preguntas: JSON.stringify(data), // Lo pasamos como string
+          preguntas: JSON.stringify(data),
         },
       });
-
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       setMensaje('Error al generar preguntas con IA');
     }
@@ -75,8 +77,8 @@ const handleCrearQuizz = async () => {
 
     console.log('Enviando quiz:', quiz);
 
-    const res = await crearQuizz(quiz, token);
-    setMensaje(`Quiz creado con ID: ${res.id}`);
+    const res = await crearQuizz(quiz, token) as any;
+    Alert.alert(`Quiz creado con ID: ${res.id}`);
     setTitulo('');
     setTema('');
     setCantidad('5');
@@ -94,7 +96,6 @@ const handleCrearQuizz = async () => {
       <Text variant="titleLarge">Crear Quizz</Text>
 
       <TextInput label="Título" value={titulo} onChangeText={setTitulo} style={styles.input} />
-
       <TextInput label="Fecha Inicio (YYYY-MM-DDTHH:mm)" value={fechaInicio} onChangeText={setFechaInicio} style={styles.input} />
       <TextInput label="Fecha Fin (YYYY-MM-DDTHH:mm)" value={fechaFin} onChangeText={setFechaFin} style={styles.input} />
 
@@ -113,10 +114,10 @@ const handleCrearQuizz = async () => {
           ))}
         </>
       )}
-
     </ScrollView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { padding: 20 },

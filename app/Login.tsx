@@ -7,6 +7,7 @@ import { fetchUserProfile } from '../apis/apiGetProfileRole';
 import { login } from '../apis/apiLoginRegister';
 import { useAuth } from '../context/AuthContext';
 
+
 // Props del componente
 type Props = {onAuthenticate: (token: string) => void;};
 
@@ -33,7 +34,7 @@ const { setToken } = useAuth();
       setToken(token); // <- AQUÍ es donde lo usas
       await SecureStore.setItemAsync('token', token);
 
-      const user = await fetchUserProfile(token);
+      const user: any = await fetchUserProfile(token);
       console.log("Usuario logueado:", user);
 
 
@@ -46,7 +47,7 @@ const { setToken } = useAuth();
       }
 
       // Intenta ejecutar el callback
-            if (onAuthenticate) {
+      if (onAuthenticate) {
         onAuthenticate(token);
       } else {
         console.warn("onAuthenticate no está definido");

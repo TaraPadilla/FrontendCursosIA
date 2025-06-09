@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const fetchUserProfile = async (token: string) => {
-  const response = await axios.get('http://<TU_BACKEND>/users/me', {
+const fetchUserProfile = async (token) => {
+  const response = await axios.get('http://192.168.1.2:8000/users/me', {
     headers: {
       Authorization: `Bearer ${token}`
     }

@@ -25,7 +25,7 @@ export default function ProfesorHome() {
 
 
   const fetchCursos = async () => {
-    const data = await getCursos();
+    const data: any = await getCursos();
     setCursos(data);
   };
 
@@ -61,7 +61,7 @@ export default function ProfesorHome() {
       {mensaje ? <Text style={{ marginTop: 20 }}>{mensaje}</Text> : null}
 
 
-      <Text variant="titleMedium" style={{ marginTop: 20 }}>Cursos existentes:</Text>
+      <Text variant="titleMedium" style={{ marginTop: 20, color: 'white' }}>Cursos existentes:</Text>
       {cursos.map((curso) => (
 
 

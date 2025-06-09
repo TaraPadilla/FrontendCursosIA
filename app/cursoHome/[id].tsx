@@ -3,7 +3,7 @@ import { getCursos } from '@/apis/apiCursoYCodigo';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import CrearQuiz from '../../components/CrearQuizz'; // Asegúrate de tener este componente
+import CrearQuiz from '../CrearQuizz'; // Asegúrate de tener este componente
 
 
 interface Curso {

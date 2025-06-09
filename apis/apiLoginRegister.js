@@ -1,13 +1,10 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-//const API_URL = 'http://localhost:8080';
+//const API_URL = 'http://localhost:8000';
 //const API_URL = 'http://10.100.224.45:8080';
 //const API_URL = 'http://192.168.1.42:8000';
-const API_URL = 'http://10.100.231.62:8000';
-
-
-
+const API_URL = 'http://192.168.1.2:8000';
 
 export const login = async (email, password) => {
     try {
@@ -18,8 +15,8 @@ export const login = async (email, password) => {
     );
       console.log('Login response:', response.data);
 
-        await SecureStore.setItemAsync('token', response.data.access_token);// Store token securely
-        return response.data.access_token;
+      SecureStore.setItemAsync('token', response.data.access_token);
+      return response.data.access_token;
     }
     catch (error) {
         console.error('Error during registration:', error.response?.data || error.message);

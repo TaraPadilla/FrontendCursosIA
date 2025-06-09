@@ -1,11 +1,10 @@
-
 // app/AlumnoHome.tsx
 import { getMisInscripciones, inscribirseCurso } from '@/apis/apiCursoYCodigo';
+import { useRouter } from 'expo-router'; // 👈 NUEVO
 import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { Button, Card, Text, TextInput } from 'react-native-paper';
-
 
 interface Curso {
   id: number;
@@ -22,15 +21,11 @@ interface Inscripcion {
   curso: Curso;
 }
 
-
-
-
-
 export default function AlumnoHome() {
   const [codigo, setCodigo] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [inscripciones, setInscripciones] = useState<Inscripcion[]>([]);
-
+  const router = useRouter(); // 👈 NUEVO
 
   const fetchInscripciones = async () => {
     const token = await SecureStore.getItemAsync('token');
@@ -40,16 +35,10 @@ export default function AlumnoHome() {
     setInscripciones(data);
   };
 
-
-  
   const handleInscribirse = async () => {
     try {
       const token = await SecureStore.getItemAsync('token');
       if (!token) throw new Error('No se encontró token');
-
-      //const respuesta = await inscribirseCurso(codigo, token);
-      //setMensaje('Inscripción exitosa');
-
 
       await inscribirseCurso(codigo, token);
       setMensaje('Inscripción exitosa');
@@ -61,7 +50,6 @@ export default function AlumnoHome() {
     }
   };
 
-  
   useEffect(() => {
     fetchInscripciones();
   }, []);
@@ -73,10 +61,18 @@ export default function AlumnoHome() {
       <Button mode="contained" onPress={handleInscribirse}>Inscribirse</Button>
       {mensaje ? <Text style={{ marginTop: 20 }}>{mensaje}</Text> : null}
 
-
       <Text variant="titleMedium" style={{ marginTop: 20 }}>Mis cursos:</Text>
       {inscripciones.map((ins) => (
-        <Card key={ins.id} style={{ marginTop: 10 }}>
+        <Card
+          key={ins.id}
+          style={{ marginTop: 10 }}
+          onPress={() =>
+            router.push({
+              pathname: '/cursoalumno/[id]',
+              params: { id: ins.curso.id.toString() },
+            })
+          }
+        >
           <Card.Title title={ins.curso.nombre} subtitle={`Código: ${ins.curso.codigo_acceso}`} />
           <Card.Content>
             <Text>{ins.curso.descripcion}</Text>
@@ -89,5 +85,5 @@ export default function AlumnoHome() {
 
 const styles = StyleSheet.create({
   container: { padding: 20 },
-  input: { marginBottom: 12 }
+  input: { marginBottom: 12 },
 });
