@@ -79,3 +79,30 @@ export const obtenerTemasDePreguntas = async (token: string): Promise<string[]> 
   console.log('Temas recibidos:', response.data);
   return response.data;
 };
+
+export interface Pregunta {
+  id: string;
+  texto: string;
+  opciones: string[];
+  respuesta_correcta: number;
+  explicacion: string;
+  tema: string;
+  curso_id: number;
+  creado_en: string;
+}
+
+export const obtenerPreguntasPorTema = async (tema: string, token: string): Promise<Pregunta[]> => {
+  console.log(`Buscando preguntas para el tema: ${tema}`);
+  const response = await axios.post<Pregunta[]>(
+    `${API_URL}/preguntas/tema`,
+    { tema },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    }
+  );
+  console.log(`Preguntas encontradas para el tema ${tema}:`, response.data);
+  return response.data;
+};

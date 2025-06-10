@@ -287,10 +287,33 @@ export default function CrearQuizz() {
         <Button 
           mode="outlined" 
           onPress={handleGenerarPreguntas} 
-          style={[styles.button, {marginBottom: 16}]}
+          style={[styles.button, {marginBottom: 8}]}
           icon="robot"
         >
           Generar preguntas con IA
+        </Button>
+
+        <Button
+          mode="outlined"
+          onPress={() => {
+            if (!tema) {
+              setMensaje('Selecciona o escribe un tema antes de seleccionar preguntas');
+              return;
+            }
+            router.push({
+              pathname: '/SeleccionarPreguntas',
+              params: {
+                tema,
+                cursoId: cursoId.toString(),
+                titulo,
+                cantidad,
+              },
+            });
+          }}
+          style={[styles.button, {marginBottom: 16}]}
+          icon="playlist-plus"
+        >
+          Seleccionar preguntas
         </Button>
         
         <Button 
@@ -369,7 +392,6 @@ const styles = StyleSheet.create({
     borderTopColor: 'white',
   },
   questionItem: {
-    backgroundColor: '#f8f9fa',
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,

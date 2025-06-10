@@ -2,7 +2,8 @@ import { obtenerQuizzesActivosProgramados } from '@/apis/apiQuizz';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from 'react';
-import { Button, FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
+import { Button, Card, Text, useTheme } from 'react-native-paper';
 
 interface Quiz {
   id: string;
@@ -14,6 +15,7 @@ interface Quiz {
 }
 
 export default function QuizActivos() {
+  const theme = useTheme();
   const { id } = useLocalSearchParams(); // curso_id
   const router = useRouter();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
@@ -40,21 +42,28 @@ export default function QuizActivos() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Quizzes Activos</Text>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Text style={[styles.title, { color: theme.colors.onBackground }]}>Quizzes Activos</Text>
       <FlatList
         data={quizzes}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.quizTitle}>{item.titulo}</Text>
-            <Text style={styles.subTitle}>{item.id}</Text> 
-            <Text>{item.tema}</Text>
-            <Button
-              title="Resolver quiz"
-              onPress={() => router.push({ pathname: "./QuizPlayer", params: { quizId: item.id } })}
-            />
-          </View>
+          <Card style={[styles.card, { backgroundColor: theme.colors.elevation.level1 }]}>
+            <Card.Content>
+              <Text style={[styles.quizTitle, { color: theme.colors.onSurface }]}>{item.titulo}</Text>
+              <Text style={[styles.subTitle, { color: theme.colors.onSurface + '99', fontSize: 13, marginBottom: 2 }]}>{item.id}</Text>
+              <Text style={{ color: theme.colors.onSurface }}>{item.tema}</Text>
+            </Card.Content>
+            <Card.Actions>
+              <Button
+                mode="contained"
+                onPress={() => router.push({ pathname: "./QuizPlayer", params: { quizId: item.id } })}
+                style={{ marginTop: 8 }}
+              >
+                Resolver quiz
+              </Button>
+            </Card.Actions>
+          </Card>
         )}
       />
     </View>
@@ -62,14 +71,13 @@ export default function QuizActivos() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16 },
+  container: { padding: 16, flex: 1 },
   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
   card: {
-    padding: 12,
     borderRadius: 10,
-    backgroundColor: '#eee',
-    marginBottom: 10,
+    marginBottom: 14,
+    elevation: 2,
   },
-  quizTitle: { fontWeight: 'bold', fontSize: 18 },
-  subTitle: { fontSize: 14, color: '#666' },
+  quizTitle: { fontWeight: 'bold', fontSize: 20, marginBottom: 4 },
+  subTitle: { fontSize: 16, marginBottom: 2 },
 });

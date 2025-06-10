@@ -4,7 +4,9 @@ import { obtenerPreguntasPorQuiz } from '@/apis/apiQuizz';
 import { useLocalSearchParams } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { View, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { Button, Text, useTheme, Card } from 'react-native-paper';
+import { useRouter } from 'expo-router';
 
 interface Pregunta {
   id: string;
@@ -15,9 +17,8 @@ interface Pregunta {
   explicacion: string;
 }
 
-import { useRouter } from 'expo-router';
-
 export default function QuizPlayer() {
+  const theme = useTheme();
   const { quizId } = useLocalSearchParams();
   const router = useRouter();
   const [preguntas, setPreguntas] = useState<Pregunta[]>([]);
@@ -67,30 +68,69 @@ export default function QuizPlayer() {
     }
   };
 
-  if (cargando) return <ActivityIndicator size="large" color="#0000ff" />;
-  if (error) return <Text>{error}</Text>;
-  if (preguntas.length === 0) return <Text>No hay preguntas disponibles.</Text>;
-  if (preguntaActual >= preguntas.length) return <Text>¡Has completado el quiz!</Text>;
+  if (cargando) {
+    return <ActivityIndicator style={{ marginTop: 40 }} />;
+  }
+
+  if (error) {
+    return <Text style={{ color: theme.colors.error, margin: 20 }}>{error}</Text>;
+  }
+
+  if (!preguntas.length) {
+    return <Text style={{ margin: 20, color: theme.colors.onSurface }}>No hay preguntas disponibles.</Text>;
+  }
 
   const pregunta = preguntas[preguntaActual];
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>{pregunta.texto}</Text>
-      {pregunta.opciones.map((opcion, idx) => (
-        <TouchableOpacity
-          key={idx}
-          style={[
-            styles.botonOpcion,
-            respuestaSeleccionada === idx && styles.botonSeleccionado,
-          ]}
-          onPress={() => handleSeleccionarRespuesta(idx)}
-        >
-          <Text>{opcion}</Text>
-        </TouchableOpacity>
-      ))}
-      <Button title="Enviar" onPress={handleEnviarRespuesta} disabled={respuestaSeleccionada === null} />
-    </View>
+    <ScrollView contentContainerStyle={[styles.container, {backgroundColor: theme.colors.background}]}> 
+      <Card style={{ marginBottom: 20, backgroundColor: theme.colors.elevation.level1 }}>
+        <Card.Content>
+          <Text variant="titleLarge" style={[styles.titulo, {color: theme.colors.onSurface}]}>{pregunta.texto}</Text>
+        </Card.Content>
+      </Card>
+      {pregunta.opciones.map((opcion: string, i: number) => {
+        const isSelected = respuestaSeleccionada === i;
+        return (
+          <TouchableOpacity
+            key={i}
+            style={[
+              styles.botonOpcion,
+              {
+                backgroundColor: isSelected
+                  ? theme.colors.primary
+                  : theme.colors.elevation.level2,
+                borderColor: isSelected
+                  ? theme.colors.primary
+                  : theme.colors.outlineVariant,
+              }
+            ]}
+            onPress={() => handleSeleccionarRespuesta(i)}
+            disabled={respuestaSeleccionada !== null}
+            activeOpacity={0.85}
+          >
+            <Text style={{
+              color: isSelected
+                ? theme.colors.onPrimary
+                : theme.colors.onSurface,
+              fontWeight: isSelected ? 'bold' : 'normal',
+              fontSize: 16,
+            }}>{opcion}</Text>
+          </TouchableOpacity>
+        );
+      })}
+      <Button
+        mode="contained"
+        onPress={handleEnviarRespuesta}
+        disabled={respuestaSeleccionada === null}
+        style={{ marginTop: 24 }}
+      >
+        Enviar
+      </Button>
+      <Text style={{ marginTop: 20, color: theme.colors.onSurface, textAlign: 'center' }}>
+        Pregunta {preguntaActual + 1} de {preguntas.length}
+      </Text>
+    </ScrollView>
   );
 }
 
@@ -99,11 +139,10 @@ const styles = StyleSheet.create({
   titulo: { fontSize: 20, marginBottom: 12 },
   botonOpcion: {
     padding: 10,
-    backgroundColor: '#eee',
     borderRadius: 8,
     marginVertical: 5,
   },
   botonSeleccionado: {
-    backgroundColor: '#cce5ff',
+    
   },
 });
