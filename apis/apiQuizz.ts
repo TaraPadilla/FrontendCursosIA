@@ -68,3 +68,14 @@ export const obtenerPreguntasPorQuiz = async (quiz_id: string, token: string): P
   console.log(response.data);
   return response.data;
 };
+
+export const obtenerTemasDePreguntas = async (token: string): Promise<string[]> => {
+  console.log('Fetching temas...');
+  const response = await axios.get<string[]>(`${API_URL}/quizzes/temas/`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  console.log('Temas recibidos:', response.data);
+  return response.data;
+};

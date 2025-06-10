@@ -1,4 +1,4 @@
-import { crearQuizz, generarPreguntasConIA } from '@/apis/apiQuizz';
+import { crearQuizz, generarPreguntasConIA, obtenerTemasDePreguntas } from '@/apis/apiQuizz';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
@@ -30,7 +30,31 @@ export default function CrearQuizz() {
   const [preguntas, setPreguntas] = useState<string[]>([]);
   const [preguntasIds, setPreguntasIds] = useState<string[]>([]);
   const [preguntasTextos, setPreguntasTextos] = useState<string[]>([]);
+  const [temasDisponibles, setTemasDisponibles] = useState<string[]>([]);
 
+
+  const [menuVisible, setMenuVisible] = useState(false);
+  const abrirMenu = () => setMenuVisible(true);
+  const cerrarMenu = () => setMenuVisible(false);
+  const [mostrarTemas, setMostrarTemas] = useState(false);
+
+  
+
+  useEffect(() => {
+    const cargarTemas = async () => {
+      try {
+        const token = await SecureStore.getItemAsync('token');
+        if (!token) throw new Error('Token no encontrado');
+        const temas = await obtenerTemasDePreguntas(token);
+        setTemasDisponibles(temas);
+      } catch (error) {
+        console.error("Error al cargar temas:", error);
+      }
+    };
+  
+    cargarTemas();
+  }, []);
+  
 
   useEffect(() => {
     if (params.cursoId) setCursoId(parseInt(params.cursoId as string));
@@ -170,13 +194,34 @@ export default function CrearQuizz() {
         mode="outlined"
       />
       
-      <TextInput 
-        label="Tema" 
-        value={tema} 
-        onChangeText={setTema} 
-        style={styles.input}
-        mode="outlined"
-      />
+      <TextInput
+          label="Tema"
+          value={tema}
+          onChangeText={setTema}
+          style={styles.input}
+          mode="outlined"
+          right={
+            <TextInput.Icon
+              icon="menu-down"
+              onPress={() => setMostrarTemas(!mostrarTemas)}
+            />
+          }
+        />
+
+        {mostrarTemas && temasDisponibles.map((t, idx) => (
+          <Button
+            key={idx}
+            mode="text"
+            onPress={() => {
+              setTema(t);
+              setMostrarTemas(false);
+            }}
+            style={{ alignSelf: 'flex-start', marginBottom: 4 }}
+          >
+            {t}
+          </Button>
+        ))}
+
       
       <TextInput 
         label="Cantidad de preguntas" 
@@ -279,23 +324,22 @@ export default function CrearQuizz() {
 const styles = StyleSheet.create({
   container: { 
     padding: 20, 
-    backgroundColor: 'white',
     paddingBottom: 40,
   },
   title: {
     marginBottom: 24,
     textAlign: 'center',
+    color: 'white',
     fontWeight: 'bold',
   },
   sectionTitle: {
     marginTop: 8,
     marginBottom: 16,
     fontWeight: '600',
-    color: '#333',
+    color: 'white',
   },
   input: { 
-    marginBottom: 16,
-    backgroundColor: '#fff',
+    marginBottom: 20,
   },
   dateContainer: {
     marginBottom: 16,
@@ -316,13 +360,13 @@ const styles = StyleSheet.create({
   message: {
     marginTop: 16,
     textAlign: 'center',
-    color: '#666',
+    color: 'white',
   },
   questionsContainer: {
     marginTop: 24,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: 'white',
   },
   questionItem: {
     backgroundColor: '#f8f9fa',
