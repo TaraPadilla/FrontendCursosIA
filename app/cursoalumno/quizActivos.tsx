@@ -52,7 +52,7 @@ export default function QuizActivos() {
             <Text>{item.tema}</Text>
             <Button
               title="Resolver quiz"
-              onPress={() => router.push({ pathname: "./resolver/[quizId]", params: { quizId: item.id } })}
+              onPress={() => router.push({ pathname: "./QuizPlayer", params: { quizId: item.id } })}
             />
           </View>
         )}

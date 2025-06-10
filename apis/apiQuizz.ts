@@ -56,3 +56,15 @@ export async function obtenerQuizzesActivosProgramados(curso_id: number, token: 
   console.log(res.data);
   return res.data;
 }
+
+export const obtenerPreguntasPorQuiz = async (quiz_id: string, token: string): Promise<any[]> => {
+  console.log(quiz_id);
+  console.log(token);
+  const response = await axios.get<any[]>(`${API_URL}/quizzes/${quiz_id}/preguntas`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  console.log(response.data);
+  return response.data;
+};

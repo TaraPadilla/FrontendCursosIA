@@ -72,7 +72,7 @@ export default function ProfesorHome() {
 
           >
 
-          <Card.Title title={curso.nombre} subtitle={`Código: ${curso.codigo_acceso}`} />
+          <Card.Title title={curso.id + " - " + curso.nombre} subtitle={`Código: ${curso.codigo_acceso}`} />
           <Card.Content>
             <Text>{curso.descripcion}</Text>
             <Text style={{ color: 'blue', marginTop: 5 }}>Ver curso</Text>
