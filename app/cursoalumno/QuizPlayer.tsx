@@ -10,17 +10,22 @@ interface Pregunta {
   id: string;
   texto: string;
   opciones: string[];
+  respuesta_correcta: number; // ahora es un índice numérico
   tema: string;
   explicacion: string;
 }
 
+import { useRouter } from 'expo-router';
+
 export default function QuizPlayer() {
   const { quizId } = useLocalSearchParams();
+  const router = useRouter();
   const [preguntas, setPreguntas] = useState<Pregunta[]>([]);
   const [preguntaActual, setPreguntaActual] = useState(0);
-  const [respuestaSeleccionada, setRespuestaSeleccionada] = useState<string | null>(null);
+  const [respuestaSeleccionada, setRespuestaSeleccionada] = useState<number | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [respuestasUsuario, setRespuestasUsuario] = useState<{seleccionada: number, esCorrecta: boolean}[]>([]);
 
   useEffect(() => {
     const fetchPreguntas = async () => {
@@ -39,21 +44,25 @@ export default function QuizPlayer() {
         setCargando(false);
       }
     };
+
     fetchPreguntas();
   }, [quizId]);
 
-  const handleSeleccionarRespuesta = (opcion: string) => {
-    setRespuestaSeleccionada(opcion);
+  const handleSeleccionarRespuesta = (indice: number) => {
+    setRespuestaSeleccionada(indice);
   };
 
   const handleEnviarRespuesta = () => {
-    if (respuestaSeleccionada) {
-      console.log(`Respuesta enviada: ${respuestaSeleccionada}`);
+    if (respuestaSeleccionada !== null) {
+      const pregunta = preguntas[preguntaActual];
+      const esCorrecta = respuestaSeleccionada === pregunta.respuesta_correcta;
+      setRespuestasUsuario(prev => [...prev, { seleccionada: respuestaSeleccionada, esCorrecta }]);
       if (preguntaActual < preguntas.length - 1) {
         setPreguntaActual(preguntaActual + 1);
         setRespuestaSeleccionada(null);
       } else {
-        setPreguntaActual(preguntas.length);
+        // Navegar a CorreccionQuiz pasando preguntas y respuestasUsuario
+        router.replace({ pathname: '/cursoalumno/CorreccionQuiz', params: { preguntas: JSON.stringify(preguntas), respuestasUsuario: JSON.stringify([...respuestasUsuario, { seleccionada: respuestaSeleccionada, esCorrecta }]) } });
       }
     }
   };
@@ -73,14 +82,14 @@ export default function QuizPlayer() {
           key={idx}
           style={[
             styles.botonOpcion,
-            respuestaSeleccionada === opcion && styles.botonSeleccionado,
+            respuestaSeleccionada === idx && styles.botonSeleccionado,
           ]}
-          onPress={() => handleSeleccionarRespuesta(opcion)}
+          onPress={() => handleSeleccionarRespuesta(idx)}
         >
           <Text>{opcion}</Text>
         </TouchableOpacity>
       ))}
-      <Button title="Enviar" onPress={handleEnviarRespuesta} disabled={!respuestaSeleccionada} />
+      <Button title="Enviar" onPress={handleEnviarRespuesta} disabled={respuestaSeleccionada === null} />
     </View>
   );
 }
