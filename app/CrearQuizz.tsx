@@ -15,8 +15,7 @@ function formatDate(date: Date) {
 
 export default function CrearQuizz() {
   const params = useLocalSearchParams();
-  const [cursoId, setCursoId] = useState<number>(1);
-
+  const [cursoId, setCursoId] = useState<number | null>(null);
   const [titulo, setTitulo] = useState('');
   const [tema, setTema] = useState('');
   const [cantidad, setCantidad] = useState('5');
@@ -57,7 +56,13 @@ export default function CrearQuizz() {
   
 
   useEffect(() => {
-    if (params.cursoId) setCursoId(parseInt(params.cursoId as string));
+    console.log("params", params);
+    if (params.id) {
+      setCursoId(parseInt(params.id as string));
+    } else if (params.cursoId) {
+      setCursoId(parseInt(params.cursoId as string));
+    }
+    
     if (params.preguntasIds) {
       setPreguntasIds(JSON.parse(params.preguntasIds as string));
     }
@@ -122,7 +127,7 @@ export default function CrearQuizz() {
           preguntas: JSON.stringify(data),
           titulo: titulo,
           tema: tema,
-          cursoId: cursoId.toString(),
+          cursoId: cursoId!,
         },
       });
     } catch (error: any) {
@@ -132,6 +137,11 @@ export default function CrearQuizz() {
   };
 
   const handleCrearQuizz = async () => {
+    if (!cursoId) {
+      Alert.alert('Error', 'No se seleccionó un curso');
+      return;
+    }
+
     try {
       const token = await SecureStore.getItemAsync('token');
       if (!token) throw new Error('Token no encontrado');
@@ -304,7 +314,7 @@ export default function CrearQuizz() {
               pathname: '/SeleccionarPreguntas',
               params: {
                 tema,
-                cursoId: cursoId.toString(),
+                cursoId: cursoId!.toString(),
                 titulo,
                 cantidad,
               },

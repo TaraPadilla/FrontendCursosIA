@@ -119,29 +119,32 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     paddingBottom: 40,
-    backgroundColor: '#f9f9f9',
+    minHeight: '100%',
   },
   title: {
-    marginBottom: 20,
+    marginBottom: 26,
     textAlign: 'center',
     fontWeight: 'bold',
+    fontSize: 22,
+    letterSpacing: 0.2,
   },
   card: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    elevation: 3, // Android shadow
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 24,
+    elevation: 4, // Android shadow
     shadowColor: '#000', // iOS shadow
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.13,
+    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ececec',
   },
   preguntaTexto: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: '#333',
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#222',
+    marginBottom: 10,
   },
   preguntaContenido: {
     fontSize: 14,
